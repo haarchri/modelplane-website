@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" role="img" aria-label="Our Claude Code usage costs about 13 times our seat price at API prices">
+<defs><radialGradient id="glow" cx="24%" cy="10%" r="80%"><stop offset="0%" stop-color="#9A5EFC" stop-opacity="0.22"/><stop offset="55%" stop-color="#9A5EFC" stop-opacity="0.05"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient></defs>
+<rect width="1200" height="630" fill="#001D2F"/>
+<rect width="1200" height="630" fill="url(#glow)"/>
+<text x="80" y="96" fill="#8B8AAE" font-size="24" font-weight="600" letter-spacing="3">THE AI CODING SUBSIDY MULTIPLE</text>
+<text x="76" y="372" fill="#9A5EFC" font-size="200" font-weight="700">13&#215;</text>
+<text x="88" y="430" fill="#B0AFCC" font-size="26" font-weight="500">what our AI coding really costs</text>
+<line x1="600" y1="150" x2="600" y2="500" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+<text x="660" y="212" fill="#8B8AAE" font-size="20" letter-spacing="1.5">WHAT WE PAY FOR CLAUDE CODE SEATS</text>
+<text x="660" y="262" fill="#ffffff" font-size="46" font-weight="600">$2,500 / mo</text>
+<text x="660" y="342" fill="#8B8AAE" font-size="20" letter-spacing="1.5">THAT SAME USAGE AT API PRICES</text>
+<text x="660" y="392" fill="#9A5EFC" font-size="46" font-weight="700">$32,937 / mo</text>
+<text x="660" y="452" fill="#B0AFCC" font-size="22">20 engineers · June 2026 · up to 52&#215; each</text>
+<text x="1120" y="590" fill="#8B8AAE" font-size="22" text-anchor="end">modelplane.ai</text>
+</svg>

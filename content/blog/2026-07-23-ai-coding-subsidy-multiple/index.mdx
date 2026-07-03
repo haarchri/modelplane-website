@@ -1,0 +1,124 @@
+---
+title: "Anthropic is subsidizing our AI coding at 13x. How long will it last?"
+description: "We measured what our team's Claude Code usage would cost at API prices. It runs about 13x our seat price on average, and 52x for our heaviest engineer. Here are the numbers, how we measure them, and the script to measure your own."
+date: "2026-07-23"
+authors:
+  - name: "Bassam Tabbara"
+    title: "Founder & CEO, Upbound"
+    url: "https://github.com/bassam"
+    avatar: "/authors/bassam.png"
+    github: "https://github.com/bassam"
+    linkedin: "https://www.linkedin.com/in/bassamtabbara/"
+    x: "https://x.com/bassamtabbara"
+    bio: "Bassam is the founder and CEO of Upbound and the creator of Crossplane and Rook, two CNCF Graduated projects. He's spent the last two decades working on cloud and infrastructure, and is now bringing that work to AI inference with Modelplane."
+tags: ["inference", "cost", "open-source"]
+cover: "/blog/ai-coding-subsidy-multiple/cover.png"
+draft: false
+pinned: true
+---
+
+We are on Anthropic's Team plan at Upbound, and we are about as AI-pilled as a company
+gets. All of our engineers write code with Claude Code every day, on a bundled seat.
+It's a flat monthly price with limits, and you don't really see the token meter.
+
+Then one of our engineers switched to opencode and started running Opus 4.8 straight
+through the API instead of on his bundled plan. I looked at his usage a few weeks in.
+He was averaging about $5,500 a month. Same person, same work, roughly what he had been
+doing on the bundled plan at $125/mo. The only thing that changed was that we could
+suddenly see the token meter.
+
+That made me want to know what it would cost us if everyone moved off bundled seats and
+onto per-token pricing. It is not just hypothetical. Anthropic
+[moved its Enterprise customers to usage-based billing](https://www.theregister.com/2026/04/16/anthropic_ejects_bundled_tokens_enterprise/)
+earlier this year, tokens on top of the seat, and
+[shut off bundled-seat usage from other coding agents](https://thenewstack.io/anthropic-claudecode-opencode-split/).
+As the labs start optimizing for margins, that cheap bundled deal will not last, and I
+wanted to know how exposed we are.
+
+## It's not easy to see the tokens on a bundled plan
+
+I was surprised by how hard it is to see the tokens consumed on a bundled plan. The
+analytics dashboards do not report tokens. The usage API that would report them needs an
+Enterprise account, as far as I can tell, which we do not have.
+
+Luckily, Claude Code writes a local log of every session, with token counts per message,
+and keeps roughly the last thirty days before it prunes. We wrote a small script that
+reads those logs and totals the tokens by model, priced at Anthropic's published rates.
+It emits only counts and costs, no prompts and no code, so people can run it and share
+the output without leaking anything. The script is
+[here](https://gist.github.com/bassam/27fa951ac01e0998b73b36d90297678b), and it runs on
+your own machine in about a minute.
+
+After we built ours, someone pointed me to [ccusage](https://ccusage.com), an open-source
+CLI that reads the same local logs and reports usage and cost across several coding
+agents. I had not seen it before writing our own, and it will get you to the same numbers.
+
+So we pulled the June numbers for 20 of our engineers.
+
+## The subsidy multiple
+
+Priced at list, the engineers' Claude Code usage ranged from under $10 to $6,470. More than 90%
+of it is Opus, mostly Opus 4.8. These are floors, because the local logs had already
+pruned part of the month for most people by the time we looked. A few people were also
+out on PTO for a few weeks in June, so their months are partial, and we counted everyone
+anyway, which pulls the average down, not up.
+
+![Each bar is one engineer's June Claude Code usage priced at Anthropic list rates, shown with the multiple over a $125 Premium seat.](/blog/ai-coding-subsidy-multiple/subsidy-multiple.svg)
+
+Set that against Anthropic's Premium seat at $125 a month, and that's an average of 13x
+more expensive if we switched to paying for tokens. The average covers a wide range: the
+median engineer was about 7x, some barely touched it, and our heaviest ran $6,470 in
+June, 52x a single seat. I have started
+calling this the **subsidy multiple**: the tokens you burn in a bundled plan, priced at list, divided by
+what you pay for the seat.
+
+A few caveats: all prices are at list, not at a rate a big customer negotiates. A large
+share of it is cache reads from long agentic sessions, which bill at a tenth of the input
+price, so someone will argue the cost is softer than it looks. A bundled plan is also not
+all-you-can-eat: past the included limit you either get throttled or, with extra usage
+turned on, pay the overage at API rates. We have it on and barely touch it, a
+few hundred dollars a month, even as hard as we lean on Claude Code. Even after all of that, the shape does not move.
+
+## We're not the only ones seeing this
+
+I sat on these numbers for a bit, wondering if we were an outlier, and then a couple of
+much larger companies put the same thing on the record. Uber's CTO
+[told The Information](https://www.theinformation.com/newsletters/applied-ai/uber-cto-shows-claude-code-can-blow-ai-budgets)
+they burned through their entire 2026 AI budget in four months, as Claude Code spread
+from 32% to 84% of a roughly 5,000-engineer org. The average engineer ran $150 to $250 a
+month, power users $500 to $2,000, and he mentioned spending $1,200 himself in a single
+two-hour session. They have
+[since capped engineers at $1,500 a month](https://techcrunch.com/2026/06/02/uber-caps-employee-ai-spending-after-blowing-through-budget-in-four-months/).
+Nothing broke, and no one was gaming it. They used Claude Code for exactly the work it is
+good at, and the bill still blew up. That is the part that matches our data: nothing went
+wrong to produce these numbers. Claude Code working as intended is what produces them.
+
+Tesla did the same thing a few weeks ago,
+[capping employees at $200 a week](https://electrek.co/2026/07/02/tesla-caps-employee-ai-spending-200-week/)
+after some engineers were running up thousands of dollars in tokens weekly. What stood
+out to me is that the same company had been ranking engineers on internal leaderboards by
+how many tokens they burned, to push adoption. So it went from gamifying token
+consumption to metering it, and Meta, Amazon, and Walmart have all moved the same way,
+capping usage or steering engineers to cheaper models. The pattern is consistent once
+usage-based billing makes the per-prompt cost visible at the individual level: the bill
+shows up, and the open tap gets a valve on it. Our 13x is that same wall. We just measured
+it before anyone made us.
+
+## Owning our intelligence
+
+So we are doing the thing that follows from taking that seriously. Open-weight models are
+closing on the frontier faster than anyone expected, and developers are voting with their
+tokens: on
+[Vercel's AI Gateway](https://vercel.com/blog/ai-gateway-production-index-july-2026),
+open-weight models went from 11% of volume in April to 29% in June, on under 4% of spend.
+We've started looking at running our own models, where the cost is compute we control
+rather than a token price someone else sets and can reset whenever the market lets them.
+It also keeps our prompts and context ours. Satya Nadella
+[made the point well](https://techcrunch.com/2026/07/13/satya-nadella-has-issued-a-shocking-warning-to-companies-using-ai/):
+with someone else's model you "pay for intelligence twice, once with money, and again with
+something even more valuable: the proprietary knowledge you must reveal to make that
+intelligence useful."
+
+A big correction is coming in AI, and that's why we built
+[Modelplane](https://github.com/modelplaneai/modelplane), a control plane for inference,
+in the open. I'm curious what your subsidy multiple is.
