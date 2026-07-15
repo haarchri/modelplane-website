@@ -1,0 +1,153 @@
+---
+title: "Any Engine, Any Topology, Any Infrastructure: How We Designed Modelplane"
+description: "How we designed Modelplane's fleet-level inference API to fit any engine, in any topology, on any infrastructure — and what's under the hood now that v0.1 has shipped."
+date: "2026-07-14"
+authors:
+  - name: "Dennis Ramdass"
+    title: "Principal AI Engineer, Upbound"
+    url: "https://github.com/dennis-upbound"
+    avatar: "/blog/how-we-designed-modelplane/dennis.jpg"
+    github: "https://github.com/dennis-upbound"
+    bio: "Dennis is a Principal AI engineer at Upbound and a core maintainer of Modelplane. He's spent the last two decades working on cloud and infrastructure, and more recently AI agents and infrastructure, and is now bringing that work to AI inference with Modelplane."
+tags: ["control-plane", "inference", "api-design"]
+cover: "/blog/how-we-designed-modelplane/cover.png"
+draft: false
+pinned: false
+---
+
+Cluster-level inference tooling is good now. What's been missing is a fleet-level API. This post covers the one we designed, how its shape accommodates any engine, in any topology, on any infrastructure, and, now that v0.1 has been out for a couple of weeks, what's actually under the hood.
+
+## The problem
+
+Inference outgrew the single cluster the same way cloud-native workloads outgrew it a decade ago. Every important horizontal ecosystem eventually converges on a neutral control layer that lets independent parts work as a coherent whole. Kubernetes did it for compute, and Crossplane for cloud infrastructure. Inference is reaching that point now.
+
+A team picks a serving engine, stands up a cluster, installs a GPU operator, wires in a gateway, and serves a model. Inside that one cluster, the tooling is good. vLLM, SGLang, and TensorRT-LLM are fast and well-understood, schedulers handle placement, and gateways handle routing. The cluster-level problem is, for the most part, solved.
+
+The fleet-level problem is not. Organizations running inference at scale don't run a cluster. They run tens or hundreds of them, across clouds, neoclouds, and on-premise, with different accelerators in each. At that scale the questions stop being cluster-shaped:
+
+- **Placement is fragmented.** One cluster is GPU-starved while another sits idle, and there's no fleet-wide view that can see both and decide.
+- **Capacity is trapped in islands.** Each cluster provisions its own nodes independently, with no mechanism to treat the fleet as one pool.
+- **Every team rebuilds the same thing.** Weight distribution, cross-region routing, fleet autoscaling, sovereignty policy: every serious operator is building this in house, from scratch.
+
+So the hard question isn't "how do I serve this model on this cluster." It's "what API lets me describe a deployment once and have it run on any engine, in any topology, on whatever hardware is available, anywhere in the fleet?"
+
+That API is what we set out to design. This post covers its shape, the decisions behind it, and, since we're a few weeks past the v0.1 launch now, how it's actually built underneath.
+
+## One API, two roles
+
+Modelplane runs as a control plane on its own cluster, above the inference clusters that serve models. Its API is two small sets of resources, one per role, with everything in between composed for you.
+
+Platform teams declare the fleet:
+
+- **InferenceCluster**: a GPU cluster in the fleet, provisioned by Modelplane or brought as is.
+- **InferenceClass**: a hardware recipe describing the devices a node pool offers and how to provision it.
+- **InferenceGateway**: the front door for the fleet's endpoints.
+
+Developers declare a workload:
+
+- **ModelDeployment**: a model's engines, replica count, and serving topology.
+- **ModelService**: one OpenAI-compatible endpoint across the replicas it selects.
+
+From those, Modelplane composes what sits in between: a ModelReplica per cluster and a ModelEndpoint per replica, then reconciles the fleet to match. A developer never names a cluster, and a platform team never touches a model rollout. The whole design rests on that separation, plus one more decision: the developer-facing API describes the shape of a deployment and nothing about the engine's internals.
+
+**Abstract around engines, not over them.** Every system that tries to abstract over engines eventually falls behind them. Modelplane describes the shape a deployment takes and leaves the engine to do its work. The next three sections are that one idea applied three times: to engines, to topologies, and to infrastructure.
+
+## Any engine
+
+We decided not to model the engine. There is no field for tensor parallelism, no quantization enum, no schema for KV-cache transfer. A ModelDeployment says how many pods to run, on how many nodes, with which devices, and points at a container image and its args. The engine flags inside that image, things like parallelism, quantization, and KV-cache transfer, are yours. Modelplane never reads or injects them.
+
+```yaml
+apiVersion: modelplane.ai/v1alpha1
+kind: ModelDeployment
+metadata:
+  name: qwen-demo
+  namespace: ml-team
+spec:
+  replicas: 1
+  engines:
+  - name: qwen
+    members:
+    - role: Standalone
+      nodeSelector:
+        devices:
+        - name: gpu
+          count: 1
+          selectors:
+          - cel: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("20Gi")) >= 0
+      template:
+        spec:
+          containers:
+          - name: engine
+            image: vllm/vllm-openai:v0.23.0
+            args: ["--model=Qwen/Qwen2.5-0.5B-Instruct"]
+```
+
+Engine flags move faster than any API we could keep up with. When vLLM added `--kv-transfer-config` for its NIXL connector, you could run prefill and decode disaggregation on Modelplane the same day, because to Modelplane it's just another arg. Had we modeled the engine, we'd have shipped a release to add a field for it, then done it again every time an engine grew a new knob. The catch is that we can't check your flags for you: get one wrong and the pod crashes instead of the API turning it down. We'll take that over an API that goes stale the week vLLM ships something. It's the same one layer down. We don't build or patch the image, so swapping engines or bumping a version is a one-line change, and you own whatever that image needs to run.
+
+Change `args` to serve a different model. Change `image` to serve a different engine. vLLM, SGLang, and llama.cpp all run unchanged, and so does your own container; adding a new engine needs no change to Modelplane. The engine is just a container the control plane schedules and supervises, not something Modelplane wraps or re-implements.
+
+## Any topology
+
+That same nesting of engines and members is how topology gets expressed, as shape, rather than as a catalog of special cases.
+
+A single Standalone member, like the one above, is single-node serving. Add more members, each with a role and its own device and node requirements, and you've described multi-node and disaggregated serving. The shapes the industry has converged on all map onto that one mechanism:
+
+- **Tensor parallel**: split each layer across the GPUs in a node, for low-latency single-model serving.
+- **Pipeline parallel**: stage a model across nodes so very large models fit.
+- **Data and expert parallel**: replicate workers, or shard experts across them, for MoE throughput.
+- **Prefill and decode disaggregation**: separate the prefill and decode phases onto distinct pools for frontier-scale serving.
+
+Two things follow from treating topology as shape. First, the parallelism details still live in the engine flags. Modelplane places the members and lets the engine do what engines do. Second, a topology we haven't seen yet is, from the API's point of view, just another arrangement of members and devices. There's no new code path to add when the next serving pattern arrives, because the shape already describes it.
+
+One caveat: the shape can describe a topology, but the fleet still has to place it. Today a gang's members land on a single pool, so a topology that spreads one engine across pools isn't schedulable yet, even though the API expresses it fine. That's a scheduling limit, not an API one, and [How it schedules](#how-it-schedules) covers it.
+
+## Any infrastructure
+
+A deployment's requirements are written as device selectors: a count, and a CEL expression over device capabilities.
+
+```yaml
+nodeSelector:
+  devices:
+  - name: gpu
+    count: 1
+    selectors:
+    - cel: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("20Gi")) >= 0
+```
+
+That selector describes the shape of the hardware a deployment needs. On the other side, platform teams describe the hardware they have with InferenceClass recipes, grouped into InferenceClusters spread across cloud, neocloud, and on-premise. Modelplane matches one to the other, placing each replica onto a cluster and node pool whose devices satisfy the selector. That might be an H200 pool in one cloud, a TPU pool in another, or an on-prem rack, whichever fits.
+
+Neither side hardcodes the other. The same ModelDeployment that runs on a developer's local kind cluster runs unchanged on a multi-cloud fleet. Only the clusters and classes underneath differ.
+
+Today that means native provisioning on GKE and EKS, with bring-your-own support for any conformant Kubernetes cluster in the meantime. That covers the rest of the cloud and neocloud landscape, including Azure, CoreWeave, Lambda, Nebius, and Crusoe, ahead of native provisioning landing for each as more Crossplane providers ship.
+
+## How it's actually built
+
+Now that Modelplane has been running in the open for a few weeks, here's what's underneath it. Modelplane is built on Crossplane rather than a bespoke set of Kubernetes controllers, and that choice shapes everything else: every Modelplane API is a Crossplane composite resource, its logic a composition function, and the resource model mirrors Kubernetes core one scope up (ModelDeployment to ModelReplica to ModelService to ModelEndpoint). We wrote that part up on the Crossplane blog, [Building Modelplane](https://blog.crossplane.io/building-modelplane/), including the composition functions, why the serving logic is Python while the distributed-systems core stays Go, and how the resources nest. Two things about the runtime are worth adding here.
+
+Modelplane runs on a control cluster, separate from the workload clusters (the InferenceClusters) that actually serve tokens. The control cluster holds no GPUs. It schedules, composes, and routes; the clusters underneath it hold the accelerators and run the engines.
+
+A served request crosses two gateways, both built on Gateway API. The first is the control-plane gateway, the fleet's front door. A client calls one OpenAI-compatible endpoint there, a ModelService, without knowing which cluster or cloud will answer. The control-plane gateway looks at which endpoints are ready for that service and forwards the request to a workload cluster that has a ready replica.
+
+That workload cluster has its own gateway, also Gateway API, which routes the request the rest of the way to the engine pods for the replica. Each hop rewrites the request path: the model name a client calls does not have to match the route the engine exposes, so the control plane can present one stable, fleet-wide endpoint while the engine underneath serves whatever path it serves. The client sees a single address, and the two-gateway path is what lets that address span replicas sitting in different clusters and regions.
+
+## How it schedules
+
+How placement is computed, a pure function of observed state recomputed on every reconcile, and how a deployment's device requests match a pool's published capacity through DRA and CEL, are both covered in the Crossplane post above. Two things it does not cover are worth stating here: why a gang lands on one pool, and where v0.1 still falls short.
+
+A gang's members, say a prefill and decode pair, always land on one pool per engine, because the scheduler can't reason about interconnect fabric below the pool level. Splitting an engine across pools risks a collective that never forms. Different engines within the same replica can land on different pools, but always the same cluster.
+
+We're being upfront that this is v0.1. Today's scheduler hands placement off to each cluster's own scheduler and DRA for binding. It doesn't yet integrate with cluster-level schedulers like Kueue or Volcano for more sophisticated bin-packing, and a whole node is currently charged per pod even when a workload only claims one GPU on a multi-GPU node. Both are open issues, tracked publicly, and exactly the kind of thing we want the community pushing on next.
+
+## It's early, so come shape the API
+
+Modelplane is v0.1, out in the open for a few weeks now, and the shapes in this post will keep changing as real fleets put pressure on them. That's the point of shipping this early. The API is still soft enough to get right.
+
+If you run inference on any engine, in any topology, on any hardware, try a deployment and tell us where the shape doesn't fit. That feedback matters most to us right now.
+
+Deploy on a local kind cluster with the [getting-started guide](https://modelplane.ai). You reach a live endpoint partway through, and the full tour takes about 45 minutes.
+
+Repo and docs: [github.com/modelplaneai/modelplane](https://github.com/modelplaneai/modelplane) and [modelplane.ai](https://modelplane.ai).
+
+Open an issue or discussion, or find us in #modelplane on the Kubernetes Slack.
+
+We're building it in the open. Come help us get the shape right.
