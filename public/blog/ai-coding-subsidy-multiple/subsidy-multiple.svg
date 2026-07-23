@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 690" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" role="img" aria-label="Each engineer's June 2026 Claude Code usage at API list prices, and its multiple over a $125 seat. Average 13x, up to 52x.">
+<text x="30" y="42" fill="#8B8AAE" font-size="12" font-weight="600" letter-spacing="2">JUNE 2026 USAGE &#183; 20 ENGINEERS</text>
+<text x="30" y="74" fill="#F2F1FA" font-size="24" font-weight="700">The subsidy multiple, by engineer</text>
+<text x="30" y="116" fill="#8B8AAE" font-size="11" letter-spacing="0.5">ENGINEER</text>
+<text x="660" y="116" fill="#8B8AAE" font-size="11" letter-spacing="0.5" text-anchor="end">MONTHLY COST</text>
+<text x="730" y="116" fill="#8B8AAE" font-size="11" letter-spacing="0.5" text-anchor="end">&#215; SEAT</text>
+<line x1="146.0" y1="128" x2="146.0" y2="616" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+<line x1="242.5" y1="128" x2="242.5" y2="616" stroke="rgba(255,255,255,0.24)" stroke-width="1"/>
+<text x="141.0" y="123" fill="#8B8AAE" font-size="10.5" text-anchor="end">$125 seat</text>
+<text x="249.5" y="123" fill="#B0AFCC" font-size="10.5">avg 13&#215;</text>
+<text x="30" y="148.2" fill="#B0AFCC" font-size="12.5">Engineer 1</text>
+<path d="M138.0,137.5 h412.9 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-412.9 z" fill="#9A5EFC"/>
+<text x="660" y="148.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$6,470</text>
+<text x="730" y="148.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">52&#215;</text>
+<text x="30" y="172.2" fill="#B0AFCC" font-size="12.5">Engineer 2</text>
+<path d="M138.0,161.5 h344.1 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-344.1 z" fill="#9A5EFC"/>
+<text x="660" y="172.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$5,400</text>
+<text x="730" y="172.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">43&#215;</text>
+<text x="30" y="196.2" fill="#B0AFCC" font-size="12.5">Engineer 3</text>
+<path d="M138.0,185.5 h273.4 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-273.4 z" fill="#9A5EFC"/>
+<text x="660" y="196.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$4,300</text>
+<text x="730" y="196.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">34&#215;</text>
+<text x="30" y="220.2" fill="#B0AFCC" font-size="12.5">Engineer 4</text>
+<path d="M138.0,209.5 h202.7 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-202.7 z" fill="#9A5EFC"/>
+<text x="660" y="220.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$3,200</text>
+<text x="730" y="220.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">26&#215;</text>
+<text x="30" y="244.2" fill="#B0AFCC" font-size="12.5">Engineer 5</text>
+<path d="M138.0,233.5 h154.5 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-154.5 z" fill="#9A5EFC"/>
+<text x="660" y="244.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$2,450</text>
+<text x="730" y="244.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">20&#215;</text>
+<text x="30" y="268.2" fill="#B0AFCC" font-size="12.5">Engineer 6</text>
+<path d="M138.0,257.5 h119.1 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-119.1 z" fill="#9A5EFC"/>
+<text x="660" y="268.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$1,900</text>
+<text x="730" y="268.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">15&#215;</text>
+<text x="30" y="292.2" fill="#B0AFCC" font-size="12.5">Engineer 7</text>
+<path d="M138.0,281.5 h92.1 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-92.1 z" fill="#5A4E86"/>
+<text x="660" y="292.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$1,480</text>
+<text x="730" y="292.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">12&#215;</text>
+<text x="30" y="316.2" fill="#B0AFCC" font-size="12.5">Engineer 8</text>
+<path d="M138.0,305.5 h70.9 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-70.9 z" fill="#5A4E86"/>
+<text x="660" y="316.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$1,150</text>
+<text x="730" y="316.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">9&#215;</text>
+<text x="30" y="340.2" fill="#B0AFCC" font-size="12.5">Engineer 9</text>
+<path d="M138.0,329.5 h57.4 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-57.4 z" fill="#5A4E86"/>
+<text x="660" y="340.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$940</text>
+<text x="730" y="340.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">8&#215;</text>
+<text x="30" y="364.2" fill="#B0AFCC" font-size="12.5">Engineer 10</text>
+<path d="M138.0,353.5 h54.2 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-54.2 z" fill="#5A4E86"/>
+<text x="660" y="364.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$890</text>
+<text x="730" y="364.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">7&#215;</text>
+<text x="30" y="388.2" fill="#B0AFCC" font-size="12.5">Engineer 11</text>
+<path d="M138.0,377.5 h52.3 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-52.3 z" fill="#5A4E86"/>
+<text x="660" y="388.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$860</text>
+<text x="730" y="388.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">7&#215;</text>
+<text x="30" y="412.2" fill="#B0AFCC" font-size="12.5">Engineer 12</text>
+<path d="M138.0,401.5 h49.7 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-49.7 z" fill="#5A4E86"/>
+<text x="660" y="412.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$820</text>
+<text x="730" y="412.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">7&#215;</text>
+<text x="30" y="436.2" fill="#B0AFCC" font-size="12.5">Engineer 13</text>
+<path d="M138.0,425.5 h45.9 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-45.9 z" fill="#5A4E86"/>
+<text x="660" y="436.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$760</text>
+<text x="730" y="436.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">6&#215;</text>
+<text x="30" y="460.2" fill="#B0AFCC" font-size="12.5">Engineer 14</text>
+<path d="M138.0,449.5 h36.9 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-36.9 z" fill="#5A4E86"/>
+<text x="660" y="460.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$620</text>
+<text x="730" y="460.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">5&#215;</text>
+<text x="30" y="484.2" fill="#B0AFCC" font-size="12.5">Engineer 15</text>
+<path d="M138.0,473.5 h27.9 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-27.9 z" fill="#5A4E86"/>
+<text x="660" y="484.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$480</text>
+<text x="730" y="484.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">4&#215;</text>
+<text x="30" y="508.2" fill="#B0AFCC" font-size="12.5">Engineer 16</text>
+<path d="M138.0,497.5 h18.9 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-18.9 z" fill="#5A4E86"/>
+<text x="660" y="508.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$340</text>
+<text x="730" y="508.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">3&#215;</text>
+<text x="30" y="532.2" fill="#B0AFCC" font-size="12.5">Engineer 17</text>
+<path d="M138.0,521.5 h10.5 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-10.5 z" fill="#5A4E86"/>
+<text x="660" y="532.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$210</text>
+<text x="730" y="532.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">2&#215;</text>
+<text x="30" y="556.2" fill="#B0AFCC" font-size="12.5">Engineer 18</text>
+<path d="M138.0,545.5 h4.7 a3,3 0 0 1 3,3 v7 a3,3 0 0 1 -3,3 h-4.7 z" fill="#5A4E86"/>
+<text x="660" y="556.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$120</text>
+<text x="730" y="556.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">&lt;1&#215;</text>
+<text x="30" y="580.2" fill="#B0AFCC" font-size="12.5">Engineer 19</text>
+<rect x="138.0" y="569.5" width="2.9" height="13" rx="1.5" fill="#5A4E86"/>
+<text x="660" y="580.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$45</text>
+<text x="730" y="580.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">&lt;1&#215;</text>
+<text x="30" y="604.2" fill="#B0AFCC" font-size="12.5">Engineer 20</text>
+<rect x="138.0" y="593.5" width="2.0" height="13" rx="1.5" fill="#5A4E86"/>
+<text x="660" y="604.2" fill="#F2F1FA" font-size="12.5" font-weight="600" text-anchor="end">$8</text>
+<text x="730" y="604.2" fill="#9A5EFC" font-size="12.5" font-weight="700" text-anchor="end">&lt;1&#215;</text>
+<rect x="30" y="635" width="12" height="12" rx="2.5" fill="#9A5EFC"/>
+<text x="50" y="646" fill="#B0AFCC" font-size="12">At or above average (13&#215;)</text>
+<rect x="218" y="635" width="12" height="12" rx="2.5" fill="#5A4E86"/>
+<text x="238" y="646" fill="#B0AFCC" font-size="12">Below average</text>
+<text x="30" y="670" fill="#8B8AAE" font-size="11.5">Median 7&#215;. The average is 13&#215; because a few heavy users pull it up. Figures are floors.</text>
+<text x="730" y="670" fill="#8B8AAE" font-size="12" font-weight="600" text-anchor="end">modelplane.ai</text>
+</svg>
