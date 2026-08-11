@@ -1,0 +1,115 @@
+---
+title: "Why Day 0 for Nemotron 3.5 Lightning wasn't a scramble"
+description: "NVIDIA released Nemotron-3.5-Lightning this morning. It was running on Modelplane by the afternoon, without a line of new Modelplane code, because day-zero model support is built into the design, not a scramble by the team."
+date: "2026-08-11"
+authors:
+  - name: "Nic Cope"
+    title: "Sr Principal Engineer, Upbound"
+    url: "https://github.com/negz"
+    avatar: "/authors/nic.jpg"
+    github: "https://github.com/negz"
+    linkedin: "https://www.linkedin.com/in/ncope/"
+    bio: "Nic is a Senior Principal Engineer at Upbound and a core maintainer of Modelplane and Crossplane. He's spent the last 15+ years working on cloud and infrastructure, including designing and building Crossplane from v0.1 through v2.0, and is now bringing that work to AI inference with Modelplane."
+tags: ["inference", "control-plane", "models"]
+draft: false
+pinned: false
+---
+
+NVIDIA released [Nemotron-3.5-Lightning](https://developer.nvidia.com/blog/nvidia-nemotron-3-5-lightning-delivers-fast-accurate-specialized-task-execution-for-long-running-agents) this morning. We had it running on Modelplane, our open-source fleet-level control plane for inference, this afternoon. We validated it against a live endpoint on a real GPU, with a [ready-to-run recipe](https://docs.modelplane.ai/examples/nemotron-3.5-lightning/) published the same day.
+
+We wrote no Modelplane code to get there. We didn't cut a release. Modelplane has zero day support for new models as an inherent property of its design.
+
+## The model
+
+Nemotron-3.5-Lightning is a 30B mixture-of-experts with 3B active parameters, built for the execution layer of long-running agents: the tool calls, result validation, and subagent handoffs a reasoning model triggers but doesn't do itself. It's a hybrid Mamba-Transformer, shipped in NVFP4, with open weights on Hugging Face. NVIDIA reports large output-speed gains over similarly sized models on agentic tasks; the numbers are in [their announcement](https://developer.nvidia.com/blog/nvidia-nemotron-3-5-lightning-delivers-fast-accurate-specialized-task-execution-for-long-running-agents).
+
+## Deploying it with Modelplane
+
+Stage the weights to the clusters where you want to deploy the model:
+
+```yaml
+apiVersion: modelplane.ai/v1alpha1
+kind: ModelCache
+metadata:
+  name: nemotron-lightning
+  namespace: ml-team
+spec:
+  source: HuggingFace
+  huggingFace:
+    repo: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+    sizeGiB: 50
+```
+
+Then deploy it. The deployment uses a stock vLLM container with the flags from NVIDIA's cookbook:
+
+```yaml
+apiVersion: modelplane.ai/v1alpha1
+kind: ModelDeployment
+metadata:
+  name: nemotron-lightning
+  namespace: ml-team
+spec:
+  replicas: 1
+  template:
+    spec:
+      modelCacheRef:
+        name: nemotron-lightning
+      engines:
+      - name: nemotron-lightning
+        members:
+        - role: Standalone
+          nodeSelector:
+            devices:
+            - name: gpu
+              count: 1
+              selectors:
+              - cel: |
+                  device.driver == "gpu.nvidia.com" && device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("79Gi")) >= 0
+          template:
+            spec:
+              containers:
+              - name: engine
+                image: vllm/vllm-openai:v0.27.1
+                command: ["vllm", "serve", "/mnt/models"]
+                args:
+                - --served-model-name=nemotron-3.5-lightning
+                - --moe-backend=humming
+                - --linear-backend=humming
+                - --max-num-seqs=256
+                - --max-model-len=65536
+                - --max-num-batched-tokens=32768
+                - --enable-prefix-caching
+                - --async-scheduling
+                - --mamba-backend=flashinfer
+                - --mamba-ssm-cache-dtype=float16
+                - --enable-mamba-cache-stochastic-rounding
+                - --mamba-cache-philox-rounds=5
+                - --mamba-cache-mode=align
+                - --mamba-ssu-algorithm=horizontal
+                - --reasoning-parser=nemotron_v3
+                - --enable-auto-tool-choice
+                - --tool-call-parser=qwen3_coder
+```
+
+The NVFP4 checkpoint (~20 GiB) fits on a single H100 with room for the KV and Mamba caches, so it runs on one GPU in one pod.
+
+We ran this recipe on vLLM, end to end on a single Nebius H100; serving and tool calls both worked. NVIDIA also publishes SGLang and TensorRT-LLM recipes for the same model. On Modelplane those are the same `ModelDeployment` with a different engine image and flags.
+
+## Day zero model support, no platform upgrade
+
+Running a new model almost always takes engine work. Sometimes the engine can't load the architecture until new code lands; sometimes it loads but support keeps improving for weeks. Nemotron-3.5-Lightning is a hybrid Mamba-Transformer served in NVFP4, so serving it well is real work in the engine: the architecture, the NVFP4 kernels, a state-space-model cache, a reasoning parser for its thinking format. That work happens in the engine, on the engine's schedule.
+
+But what sits between a new engine build and you running it? Most systems that orchestrate engines on Kubernetes are coupled to the engine: they wrap it, pin its version, or ship it inside their own runtime image. When the engine moves to support a new model, a coupled layer often has to move with it. So the real sequence becomes upgrade the orchestration layer, then adopt the new engine, then run the model. Upgrading the layer that runs your whole fleet is a far bigger, riskier change than pulling a new engine image.
+
+Modelplane is never in that chain. It doesn't wrap the engine or rewrite your flags; it runs the image, command, and args you give it, exactly as written. The engine is a container you point at, with no Modelplane version pinned to it. New engine, new model, nothing to upgrade in between. The design guarantees it.
+
+What Modelplane does instead is the fleet: provisioning clusters and node pools, scheduling each replica onto hardware that fits, caching weights once per cluster, scaling replicas, and routing through one OpenAI-compatible endpoint. None of that is model-specific, so a new model arrives on the engine's release cadence, whichever engine you run.
+
+You can watch it happen. Support for this model is still improving in SGLang: a fix to its NVFP4 mixture-of-experts path is [merged upstream](https://github.com/sgl-project/sglang/pull/33543) but not yet in a tagged release. When it ships, adopting it is a one-line change, the engine image in a `ModelDeployment`, and nothing in Modelplane moves.
+
+## Try it
+
+The full recipe is in the docs: [Nemotron-3.5-Lightning on Modelplane](https://docs.modelplane.ai/examples/nemotron-3.5-lightning/).
+Modelplane is Apache 2.0, still early, and evolving fast at [github.com/modelplaneai/modelplane](https://github.com/modelplaneai/modelplane).
+
+If you run inference across more than one cluster, we'd like your issues.
